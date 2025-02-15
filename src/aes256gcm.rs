@@ -10,8 +10,8 @@ const NAME: &str = "AES-GCM";
 
 /// Errors that can occur when importing cryptographic keys.
 ///
-/// These errors map to the exceptions defined in the Web Crypto API specification
-/// for key import operations.
+/// These errors map to the exceptions defined in the Web Crypto API
+/// specification for key import operations.
 ///
 /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/importKey#exceptions)
 #[derive(Debug, Clone, thiserror::Error)]
@@ -33,21 +33,25 @@ pub enum ImportKeyError {
     /// - The key data doesn't match the expected format
     /// - The key data is invalid for the specified algorithm
     ///
-    /// For example, trying to import non-AES data as an AES key would trigger this error.
+    /// For example, trying to import non-AES data as an AES key would trigger
+    /// this error.
     #[error("invalid format or keyData not suited for that format")]
     Type,
     /// Indicates that an invalid key format was specified during import.
     ///
     /// This error occurs when:
-    /// - The specified format (e.g., "raw", "pkcs8", "spki", "jwk") is not supported
+    /// - The specified format (e.g., "raw", "pkcs8", "spki", "jwk") is not
+    ///   supported
     /// - The specified format is not appropriate for the key type
     ///
-    /// For example, trying to import a symmetric key using "spki" format would trigger this error.
+    /// For example, trying to import a symmetric key using "spki" format would
+    /// trigger this error.
     #[error("invalid key format provided")]
     InvalidKeyFormat,
     /// A wrapper for other types of errors that may occur during key import.
     ///
-    /// This includes general Web Crypto API errors and other unexpected failures.
+    /// This includes general Web Crypto API errors and other unexpected
+    /// failures.
     #[error(transparent)]
     Generic(#[from] crate::Error),
 }
@@ -55,7 +59,8 @@ pub enum ImportKeyError {
 impl From<JsValue> for ImportKeyError {
     /// Converts a JavaScript value into an ImportKeyError.
     ///
-    /// Maps specific DOM exceptions to their corresponding ImportKeyError variants:
+    /// Maps specific DOM exceptions to their corresponding ImportKeyError
+    /// variants:
     /// - `SyntaxError` → `ImportKeyError::Syntax`
     /// - `DataError` → `ImportKeyError::InvalidKeyFormat`
     /// - JavaScript `SyntaxError` → `ImportKeyError::Type`

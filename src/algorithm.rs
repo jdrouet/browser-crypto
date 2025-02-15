@@ -11,34 +11,41 @@ use web_sys::DomException;
 /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues#exceptions)
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum NonceError {
-    /// Indicates that the requested nonce length exceeds the maximum allowed size.
+    /// Indicates that the requested nonce length exceeds the maximum allowed
+    /// size.
     ///
-    /// This error occurs when trying to generate a nonce larger than 65536 bytes,
-    /// which is the maximum size allowed by the Web Crypto API's getRandomValues().
-    /// This limit exists as a security measure to prevent excessive entropy extraction.
+    /// This error occurs when trying to generate a nonce larger than 65536
+    /// bytes, which is the maximum size allowed by the Web Crypto API's
+    /// getRandomValues(). This limit exists as a security measure to
+    /// prevent excessive entropy extraction.
     ///
     /// Note: Most cryptographic algorithms use much smaller nonces
-    /// (typically 12 or 16 bytes), so this error should rarely occur in practice.
+    /// (typically 12 or 16 bytes), so this error should rarely occur in
+    /// practice.
     #[error("the requested nonce length exceeds 65536")]
     QuotaExceeded,
-    /// Indicates that the provided nonce size doesn't match the algorithm's requirements.
+    /// Indicates that the provided nonce size doesn't match the algorithm's
+    /// requirements.
     ///
     /// This error occurs when:
     /// - Creating a nonce from existing data
-    /// - The provided data length doesn't match the algorithm's specified nonce size
+    /// - The provided data length doesn't match the algorithm's specified nonce
+    ///   size
     ///
     /// # Fields
     /// * `expected` - The nonce size required by the algorithm
     /// * `received` - The actual size of the provided nonce data
     ///
-    /// For example, if AES-GCM requires a 12-byte nonce but 16 bytes were provided,
-    /// this error would be returned with expected=12, received=16.
+    /// For example, if AES-GCM requires a 12-byte nonce but 16 bytes were
+    /// provided, this error would be returned with expected=12,
+    /// received=16.
     #[error("invalid nonce size provided, expected {expected}, received {received}")]
     InvalidSize { expected: u32, received: u32 },
-    /// A wrapper for other types of errors that may occur during nonce operations.
+    /// A wrapper for other types of errors that may occur during nonce
+    /// operations.
     ///
-    /// This includes general Web Crypto API errors and other unexpected failures
-    /// that might occur during nonce generation or handling.
+    /// This includes general Web Crypto API errors and other unexpected
+    /// failures that might occur during nonce generation or handling.
     #[error(transparent)]
     Generic(#[from] crate::Error),
 }
@@ -59,14 +66,14 @@ impl From<wasm_bindgen::JsValue> for NonceError {
 
 /// Errors that can occur during encryption operations.
 ///
-/// These errors map to the exceptions defined in the Web Crypto API specification
-/// for encryption operations.
+/// These errors map to the exceptions defined in the Web Crypto API
+/// specification for encryption operations.
 ///
 /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#exceptions)
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum EncryptionError {
-    /// Indicates that the requested operation is not valid for the provided key.
-    /// This typically occurs when:
+    /// Indicates that the requested operation is not valid for the provided
+    /// key. This typically occurs when:
     /// - The key doesn't support the encryption operation
     /// - The key's algorithm doesn't match the specified algorithm
     /// - The key's usages don't include "encrypt"
@@ -103,14 +110,14 @@ impl From<JsValue> for EncryptionError {
 
 /// Errors that can occur during decryption operations.
 ///
-/// These errors map to the exceptions defined in the Web Crypto API specification
-/// for decryption operations.
+/// These errors map to the exceptions defined in the Web Crypto API
+/// specification for decryption operations.
 ///
 /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/decrypt#exceptions)
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum DecryptionError {
-    /// Indicates that the requested operation is not valid for the provided key.
-    /// This typically occurs when:
+    /// Indicates that the requested operation is not valid for the provided
+    /// key. This typically occurs when:
     /// - The key doesn't support the decryption operation
     /// - The key's algorithm doesn't match the specified algorithm
     /// - The key's usages don't include "decrypt"
@@ -120,7 +127,8 @@ pub enum DecryptionError {
     /// This can occur when:
     /// - The ciphertext is corrupted or malformed
     /// - The authentication tag is invalid (for authenticated encryption)
-    /// - The algorithm parameters (like nonce) don't match those used for encryption
+    /// - The algorithm parameters (like nonce) don't match those used for
+    ///   encryption
     #[error("operation failed for an operation-specific reason")]
     Operation,
     /// A wrapper for other types of errors that may occur during decryption
@@ -186,7 +194,8 @@ where
     /// Result containing Nonce or NonceError
     ///
     /// # Errors
-    /// Returns `NonceError::InvalidSize` if data length doesn't match algorithm requirements
+    /// Returns `NonceError::InvalidSize` if data length doesn't match algorithm
+    /// requirements
     pub fn from_slice(data: &[u8]) -> Result<Self, NonceError> {
         let size = data.len() as u32;
         if size != A::NONCE_SIZE {
@@ -223,7 +232,8 @@ pub trait Algorithm: Sized {
     ///
     /// # Errors
     /// - `NonceError::QuotaExceeded` if requested length > 65536 bytes
-    /// - `NonceError::InvalidSize` if nonce size doesn't match algorithm requirements
+    /// - `NonceError::InvalidSize` if nonce size doesn't match algorithm
+    ///   requirements
     fn generate_nonce() -> Result<Nonce<Self>, NonceError> {
         Nonce::<Self>::generate()
     }
@@ -239,7 +249,8 @@ pub trait Algorithm: Sized {
     ///
     /// # Errors
     /// - `EncryptionError::InvalidAccess` if operation invalid for provided key
-    /// - `EncryptionError::Operation` if encryption fails for algorithm-specific reasons
+    /// - `EncryptionError::Operation` if encryption fails for
+    ///   algorithm-specific reasons
     fn encrypt(
         &self,
         nonce: &Nonce<Self>,
@@ -257,7 +268,8 @@ pub trait Algorithm: Sized {
     ///
     /// # Errors
     /// - `DecryptionError::InvalidAccess` if operation invalid for provided key
-    /// - `DecryptionError::Operation` if decryption fails for algorithm-specific reasons
+    /// - `DecryptionError::Operation` if decryption fails for
+    ///   algorithm-specific reasons
     fn decrypt(
         &self,
         nonce: &Nonce<Self>,

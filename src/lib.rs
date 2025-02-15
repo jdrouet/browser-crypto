@@ -1,8 +1,9 @@
-//! A safe Rust interface to browser-based cryptographic operations using the Web Crypto API.
+//! A safe Rust interface to browser-based cryptographic operations using the
+//! Web Crypto API.
 //!
-//! This crate provides a type-safe wrapper around the browser's native cryptographic
-//! functionality, making it easier to perform common cryptographic operations in
-//! WebAssembly applications.
+//! This crate provides a type-safe wrapper around the browser's native
+//! cryptographic functionality, making it easier to perform common
+//! cryptographic operations in WebAssembly applications.
 //!
 //! # Features
 //!
@@ -39,7 +40,8 @@
 //!
 //! # Security Considerations
 //!
-//! This crate relies on the browser's implementation of the Web Crypto API, which:
+//! This crate relies on the browser's implementation of the Web Crypto API,
+//! which:
 //!
 //! - Uses the platform's secure random number generator
 //! - Implements cryptographic operations in native code
@@ -54,7 +56,8 @@
 //!
 //! # Features Flags
 //!
-//! - `log-error`: Enables console logging of unknown errors (useful for debugging)
+//! - `log-error`: Enables console logging of unknown errors (useful for
+//!   debugging)
 //!
 //! # Browser Compatibility
 //!
@@ -79,8 +82,8 @@
 //!
 //! # Implementation Details
 //!
-//! This crate uses `wasm-bindgen` to interface with the Web Crypto API and provides
-//! a safe Rust interface for:
+//! This crate uses `wasm-bindgen` to interface with the Web Crypto API and
+//! provides a safe Rust interface for:
 //!
 //! - Key management
 //! - Nonce generation
@@ -120,13 +123,14 @@ where
 /// General errors that can occur when interacting with the Web Crypto API.
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum Error {
-    /// Indicates that the global scope (window or worker context) could not be accessed.
-    /// This might occur in environments where the Web API is not available.
+    /// Indicates that the global scope (window or worker context) could not be
+    /// accessed. This might occur in environments where the Web API is not
+    /// available.
     #[error("unable to read global scope")]
     GlobalScopeNotFound,
-    /// Indicates that the Web Crypto API is not available in the current environment.
-    /// This might occur in environments that don't support the Web Crypto API or
-    /// where it's been disabled.
+    /// Indicates that the Web Crypto API is not available in the current
+    /// environment. This might occur in environments that don't support the
+    /// Web Crypto API or where it's been disabled.
     #[error("unable to access crypto interface")]
     CryptoUnreachable,
     /// Represents a DOM exception with a name and message.
