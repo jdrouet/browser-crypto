@@ -60,7 +60,6 @@ impl Algorithm for Aes256Gcm {
         let subtle = crate::subtle()?;
         // Convert plaintext to Uint8Array
         let payload = js_sys::Uint8Array::from(payload);
-
         let params = web_sys::AesGcmParams::new(NAME, nonce.as_ref());
         let promise: js_sys::Promise = subtle
             .decrypt_with_object_and_js_u8_array(&params, &self.key, &payload.into())

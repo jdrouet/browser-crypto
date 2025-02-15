@@ -12,9 +12,27 @@ fn from_js<V: JsCast>(value: JsValue) -> Result<V> {
 }
 
 fn from_js_error(value: JsValue) -> Error {
+    #[cfg(feature = "log-error")]
+    web_sys::console::error_1(&value);
     if value.is_instance_of::<DomException>() {
         let handle = value.unchecked_into::<DomException>();
-        return Error::other(handle.name());
+        return match handle.name().as_str() {
+            // Raised when the requested operation is not valid for the provided key
+            // (e.g. invalid encryption algorithm, or invalid key for the specified
+            // 2encryption algorithm).
+            "InvalidAccessError" => Error::new(
+                ErrorKind::InvalidInput,
+                "operation is not valid for the provided key",
+            ),
+            // Raised when the operation failed for an operation-specific reason
+            // (e.g. algorithm parameters of invalid sizes, or there was an error
+            // decrypting the ciphertext).
+            "OperationError" => Error::new(
+                ErrorKind::InvalidInput,
+                "operation failed for an operation-specific reason",
+            ),
+            other => Error::other(other),
+        };
     }
     if value.is_instance_of::<Exception>() {
         let handle = value.unchecked_into::<Exception>();
@@ -34,7 +52,7 @@ async fn resolve<V: JsCast>(promise: Promise) -> Result<V> {
 fn scope() -> Result<web_sys::WorkerGlobalScope> {
     js_sys::global()
         .dyn_into::<WorkerGlobalScope>()
-        .map_err(|_| Error::other("unable to read scope"))
+        .map_err(|_| Error::other("unable to read worker global scope"))
 }
 
 fn crypto() -> Result<web_sys::Crypto> {
