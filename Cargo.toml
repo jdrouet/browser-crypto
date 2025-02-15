@@ -1,7 +1,17 @@
 [package]
 name = "browser-crypto"
 version = "0.1.0"
+authors = ["Jeremie Drouet <jeremie.drouet@gmail.com>"]
 edition = "2021"
+description = "A safe Rust interface to browser-based cryptographic operations using the Web Crypto API"
+repository = "https://github.com/jdrouet/browser-crypto"
+license = "MIT"
+keywords = ["cryptography", "wasm", "webcrypto", "browser", "encryption"]
+categories = ["cryptography", "wasm", "web-programming"]
+readme = "readme.md"
+documentation = "https://docs.rs/browser-crypto"
+
+exclude = [".github/*", ".gitignore", "tests/*"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -32,3 +42,11 @@ console_error_panic_hook = { version = "0.1" }
 getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen-test = { version = "0.3" }
 web-sys = { version = "0.3", features = ["console"] }
+
+[package.metadata.docs.rs]
+# Enable all features when building docs
+all-features = true
+# Define the default target for documentation
+default-target = "wasm32-unknown-unknown"
+# Add any additional rustdoc flags
+rustdoc-args = ["--cfg", "docsrs"]

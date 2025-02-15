@@ -93,7 +93,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under [LICENSE NAME] - see the LICENSE file for details.
+This project is licensed under MIT.
 
 ## Acknowledgments
 
