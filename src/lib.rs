@@ -109,10 +109,11 @@ pub mod algorithm;
 ///
 /// # Returns
 /// Result containing resolved value or error
-async fn resolve<V, E: From<JsValue> + From<Error>>(promise: Promise) -> Result<V, E>
+async fn resolve<V, E>(promise: Promise) -> Result<V, E>
 where
     V: JsCast,
     E: From<JsValue>,
+    E: From<Error>,
 {
     JsFuture::from(promise)
         .await

@@ -53,11 +53,8 @@ pub enum NonceError {
 impl From<wasm_bindgen::JsValue> for NonceError {
     fn from(value: wasm_bindgen::JsValue) -> Self {
         if let Some(exception) = value.dyn_ref::<web_sys::DomException>() {
-            match exception.name().as_str() {
-                "QuotaExceededError" => {
-                    return Self::QuotaExceeded;
-                }
-                _ => {}
+            if exception.name().as_str() == "QuotaExceededError" {
+                return Self::QuotaExceeded;
             }
         }
         Self::Generic(crate::Error::from(value))
@@ -210,7 +207,7 @@ where
         })
     }
 
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = u8> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
         (0..self.inner.length()).map(|idx| self.inner.get_index(idx))
     }
 

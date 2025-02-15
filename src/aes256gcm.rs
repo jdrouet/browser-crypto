@@ -148,7 +148,7 @@ impl Algorithm for Aes256Gcm {
 
         let params = web_sys::AesGcmParams::new(NAME, nonce.as_ref());
         let promise: js_sys::Promise =
-            subtle.encrypt_with_object_and_js_u8_array(&params, &self.key, &plaintext.into())?;
+            subtle.encrypt_with_object_and_js_u8_array(&params, &self.key, &plaintext)?;
         let ciphertext = crate::resolve::<js_sys::ArrayBuffer, EncryptionError>(promise).await?;
 
         Ok(crate::array_to_vec(&js_sys::Uint8Array::new(&ciphertext)))
@@ -164,7 +164,7 @@ impl Algorithm for Aes256Gcm {
         let payload = js_sys::Uint8Array::from(payload);
         let params = web_sys::AesGcmParams::new(NAME, nonce.as_ref());
         let promise: js_sys::Promise =
-            subtle.decrypt_with_object_and_js_u8_array(&params, &self.key, &payload.into())?;
+            subtle.decrypt_with_object_and_js_u8_array(&params, &self.key, &payload)?;
         let clear = crate::resolve::<js_sys::ArrayBuffer, DecryptionError>(promise).await?;
 
         Ok(crate::array_to_vec(&js_sys::Uint8Array::new(&clear)))
