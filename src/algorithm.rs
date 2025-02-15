@@ -4,15 +4,17 @@ use wasm_bindgen::{JsCast, JsValue};
 use web_sys::DomException;
 
 #[derive(Debug, Clone, thiserror::Error)]
-pub enum NonceGenerationError {
+pub enum NonceError {
     // https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues#exceptions
     #[error("the requested nonce length exceeds 65536")]
     QuotaExceeded,
+    #[error("invalid nonce size provided, expected {expected}, received {received}")]
+    InvalidSize { expected: u32, received: u32 },
     #[error(transparent)]
     Generic(#[from] crate::Error),
 }
 
-impl From<wasm_bindgen::JsValue> for NonceGenerationError {
+impl From<wasm_bindgen::JsValue> for NonceError {
     fn from(value: wasm_bindgen::JsValue) -> Self {
         if let Some(exception) = value.dyn_ref::<web_sys::DomException>() {
             match exception.name().as_str() {
@@ -99,7 +101,7 @@ where
     A: Algorithm,
     A: Sized,
 {
-    pub fn generate() -> Result<Nonce<A>, NonceGenerationError> {
+    pub fn generate() -> Result<Nonce<A>, NonceError> {
         let crypto = crate::crypto()?;
         let inner = js_sys::Uint8Array::new_with_length(A::NONCE_SIZE);
         crypto.get_random_values_with_js_u8_array(&inner)?;
@@ -109,11 +111,18 @@ where
         })
     }
 
-    pub fn from_slice(data: &[u8]) -> Self {
-        Self {
+    pub fn from_slice(data: &[u8]) -> Result<Self, NonceError> {
+        let size = data.len() as u32;
+        if size != A::NONCE_SIZE {
+            return Err(NonceError::InvalidSize {
+                expected: A::NONCE_SIZE,
+                received: size,
+            });
+        }
+        Ok(Self {
             algo: PhantomData,
             inner: js_sys::Uint8Array::from(data),
-        }
+        })
     }
 
     pub fn iter<'a>(&'a self) -> impl Iterator<Item = u8> + 'a {
@@ -128,7 +137,7 @@ where
 pub trait Algorithm: Sized {
     const NONCE_SIZE: u32;
 
-    fn generate_nonce() -> Result<Nonce<Self>, NonceGenerationError> {
+    fn generate_nonce() -> Result<Nonce<Self>, NonceError> {
         Nonce::<Self>::generate()
     }
 

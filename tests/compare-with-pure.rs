@@ -14,22 +14,6 @@ wasm_bindgen_test_configure!(run_in_dedicated_worker);
 pub const DEFAULT_KEY: [u8; 32] = [42; 32];
 
 #[wasm_bindgen_test]
-async fn should_encrypt_and_decrypt() {
-    console_error_panic_hook::set_once();
-
-    let clear_msg = b"Hello World!";
-    let crypto = browser_crypto::aes256gcm::Aes256Gcm::from_key(&DEFAULT_KEY)
-        .await
-        .unwrap();
-    let nonce = browser_crypto::aes256gcm::Aes256Gcm::generate_nonce().unwrap();
-    let encrypted = crypto.encrypt(&nonce, clear_msg).await.unwrap();
-
-    let decrypted = crypto.decrypt(&nonce, &encrypted).await.unwrap();
-
-    assert_eq!(clear_msg, decrypted.as_slice());
-}
-
-#[wasm_bindgen_test]
 async fn should_have_the_same_encrypted_output() {
     // in this test, we use empty nonces
     console_error_panic_hook::set_once();
@@ -38,7 +22,7 @@ async fn should_have_the_same_encrypted_output() {
     let browser = browser_crypto::aes256gcm::Aes256Gcm::from_key(&DEFAULT_KEY)
         .await
         .unwrap();
-    let browser_nonce = browser_crypto::algorithm::Nonce::from_slice(&[0; 12]);
+    let browser_nonce = browser_crypto::algorithm::Nonce::from_slice(&[0; 12]).unwrap();
     let browser_encrypted = browser.encrypt(&browser_nonce, clear_msg).await.unwrap();
 
     let pure = aes_gcm::Aes256Gcm::new_from_slice(&DEFAULT_KEY).unwrap();

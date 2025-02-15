@@ -23,8 +23,8 @@ pub enum Error {
     GlobalScopeNotFound,
     #[error("unable to access crypto interface")]
     CryptoUnreachable,
-    #[error("DOMException {0}")]
-    DomException(String),
+    #[error("DOMException {0}: {1}")]
+    DomException(String, String),
     #[error("unknown exception")]
     Unknown,
 }
@@ -32,7 +32,7 @@ pub enum Error {
 impl From<JsValue> for Error {
     fn from(value: JsValue) -> Self {
         if let Some(exception) = value.dyn_ref::<DomException>() {
-            Self::DomException(exception.name())
+            Self::DomException(exception.name(), exception.message())
         } else {
             #[cfg(feature = "log-error")]
             web_sys::console::error_1(&value);

@@ -12,6 +12,8 @@ pub enum ImportKeyError {
     Syntax,
     #[error("invalid format or keyData not suited for that format")]
     Type,
+    #[error("invalid key format provided")]
+    InvalidKeyFormat,
     #[error(transparent)]
     Generic(#[from] crate::Error),
 }
@@ -21,6 +23,9 @@ impl From<JsValue> for ImportKeyError {
         if let Some(exception) = value.dyn_ref::<DomException>() {
             if exception.name() == "SyntaxError" {
                 return Self::Syntax;
+            }
+            if exception.name() == "DataError" {
+                return Self::InvalidKeyFormat;
             }
         }
         if value.dyn_ref::<SyntaxError>().is_some() {
