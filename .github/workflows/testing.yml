@@ -1,0 +1,35 @@
+name: testing
+
+on:
+  merge_group:
+    types: [checks_requested]
+  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "Cargo.*"
+      - "src/**"
+      - "tests/**"
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install cargo toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - run: cargo test
+
+      - name: install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - run: wasm-pack test --headless --firefox
+      - run: wasm-pack test --headless --chrome

@@ -1,0 +1,27 @@
+name: common
+
+on:
+  merge_group:
+    types: [checks_requested]
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  code-checking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: rustfmt,clippy
+      - name: run lint
+        run: cargo fmt --all --check
+      - name: run check
+        run: cargo check --all-features --tests
+      - name: run clippy
+        run: cargo clippy --all-targets --all-features --tests
