@@ -11,6 +11,7 @@ default = []
 log-error = ["web-sys/console"]
 
 [dependencies]
+thiserror = { version = "2.0" }
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = { version = "0.4", features = [

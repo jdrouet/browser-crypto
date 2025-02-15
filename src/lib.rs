@@ -1,65 +1,57 @@
 use js_sys::Promise;
-use std::io::{Error, ErrorKind, Result};
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{DomException, Exception, WorkerGlobalScope};
+use web_sys::{DomException, WorkerGlobalScope};
 
 pub mod aes256gcm;
 pub mod algorithm;
 
-fn from_js<V: JsCast>(value: JsValue) -> Result<V> {
-    value.dyn_into::<V>().map_err(from_js_error)
+async fn resolve<V, E: From<JsValue> + From<Error>>(promise: Promise) -> Result<V, E>
+where
+    V: JsCast,
+    E: From<JsValue>,
+{
+    JsFuture::from(promise)
+        .await
+        .and_then(|value| value.dyn_into::<V>())
+        .map_err(E::from)
 }
 
-fn from_js_error(value: JsValue) -> Error {
-    #[cfg(feature = "log-error")]
-    web_sys::console::error_1(&value);
-    if value.is_instance_of::<DomException>() {
-        let handle = value.unchecked_into::<DomException>();
-        return match handle.name().as_str() {
-            // Raised when the requested operation is not valid for the provided key
-            // (e.g. invalid encryption algorithm, or invalid key for the specified
-            // 2encryption algorithm).
-            "InvalidAccessError" => Error::new(
-                ErrorKind::InvalidInput,
-                "operation is not valid for the provided key",
-            ),
-            // Raised when the operation failed for an operation-specific reason
-            // (e.g. algorithm parameters of invalid sizes, or there was an error
-            // decrypting the ciphertext).
-            "OperationError" => Error::new(
-                ErrorKind::InvalidInput,
-                "operation failed for an operation-specific reason",
-            ),
-            other => Error::other(other),
-        };
-    }
-    if value.is_instance_of::<Exception>() {
-        let handle = value.unchecked_into::<Exception>();
-        return Error::other(handle.name());
-    }
-    if let Some(err) = value.dyn_ref::<web_sys::js_sys::TypeError>() {
-        let message: String = err.message().into();
-        return Error::new(ErrorKind::InvalidInput, message);
-    }
-    Error::other("unknown error")
+#[derive(Debug, Clone, thiserror::Error)]
+pub enum Error {
+    #[error("unable to read global scope")]
+    GlobalScopeNotFound,
+    #[error("unable to access crypto interface")]
+    CryptoUnreachable,
+    #[error("DOMException {0}")]
+    DomException(String),
+    #[error("unknown exception")]
+    Unknown,
 }
 
-async fn resolve<V: JsCast>(promise: Promise) -> Result<V> {
-    from_js(JsFuture::from(promise).await.map_err(from_js_error)?)
+impl From<JsValue> for Error {
+    fn from(value: JsValue) -> Self {
+        if let Some(exception) = value.dyn_ref::<DomException>() {
+            Self::DomException(exception.name())
+        } else {
+            #[cfg(feature = "log-error")]
+            web_sys::console::error_1(&value);
+            Self::Unknown
+        }
+    }
 }
 
-fn scope() -> Result<web_sys::WorkerGlobalScope> {
+fn scope() -> Result<web_sys::WorkerGlobalScope, Error> {
     js_sys::global()
         .dyn_into::<WorkerGlobalScope>()
-        .map_err(|_| Error::other("unable to read worker global scope"))
+        .map_err(|_| Error::GlobalScopeNotFound)
 }
 
-fn crypto() -> Result<web_sys::Crypto> {
-    scope().and_then(|scope| scope.crypto().map_err(from_js_error))
+fn crypto() -> Result<web_sys::Crypto, Error> {
+    scope().and_then(|scope| scope.crypto().map_err(|_| Error::CryptoUnreachable))
 }
 
-fn subtle() -> Result<web_sys::SubtleCrypto> {
+fn subtle() -> Result<web_sys::SubtleCrypto, Error> {
     crypto().map(|crypto| crypto.subtle())
 }
 
