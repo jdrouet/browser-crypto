@@ -97,7 +97,7 @@
                 decryptionChart.update();
             }
 
-            const worker = new Worker("/worker.js", { type: "module" });
+            const worker = new Worker("worker.js", { type: "module" });
 
             function run(profile) {
                 worker.postMessage({ event: "bench", profile });
