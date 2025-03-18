@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/jdrouet/browser-crypto/compare/browser-crypto-v0.1.0...browser-crypto-v0.1.1) - 2025-03-18
+
+### Other
+
+- add project to benchmark ([#3](https://github.com/jdrouet/browser-crypto/pull/3))
+- release v0.1.0 ([#1](https://github.com/jdrouet/browser-crypto/pull/1))
+
 ## [0.1.0](https://github.com/jdrouet/browser-crypto/releases/tag/v0.1.0) - 2025-02-15
 
 ### Added
