@@ -28,8 +28,8 @@ jobs:
 
       - name: copy resources to public directory
         run: |
-          mkdir ./public
-          cp -r examples/benchmark/pkg ./public/pkg
+          mkdir -p ./public/pkg
+          cp -r examples/benchmark/pkg/{benchmark.js,benchmark_bg.wasm} ./public/pkg/
           cp -r examples/benchmark/{index.html,worker.js} ./public/
 
       - name: deploy page
