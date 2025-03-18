@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <script src=" https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js "></script>
+
+        <title>Benchmarking encryption</title>
+    </head>
+    <body>
+        <p>
+            <label for="axis">Axis: </label>
+            <select id="axis" onChange="updateAxis()">
+                <option value="linear">Linear</option>
+                <option value="logarithmic">Logarithmic</option>
+            </select>
+        </p>
+        <p>
+            <button onClick="run('small')">Run Small Bench</button>
+            <button onClick="run('medium')">Run Medium Bench</button>
+            <button onClick="run('large')">Run Large Bench</button>
+        </p>
+        <div style="width: 800px"><canvas id="encryption"></canvas></div>
+        <div style="width: 800px"><canvas id="decryption"></canvas></div>
+        <script>
+            const encryptionCanvas = document.getElementById("encryption");
+            const decryptionCanvas = document.getElementById("decryption");
+
+            const encryptionChart = new Chart(encryptionCanvas, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Pure",
+                            data: [],
+                            xAxisID: "xAxis",
+                        },
+                        {
+                            label: "Web",
+                            data: [],
+                            xAxisID: "xAxis",
+                        },
+                    ],
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "Encryption speed with size",
+                        },
+                    },
+                    scales: {
+                        xAxis: {
+                            type: "logarithmic",
+                        },
+                    },
+                },
+            });
+            const decryptionChart = new Chart(decryptionCanvas, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: "Pure",
+                            data: [],
+                            xAxisID: "xAxis",
+                        },
+                        {
+                            label: "Web",
+                            data: [],
+                            xAxisID: "xAxis",
+                        },
+                    ],
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "Decryption speed with size",
+                        },
+                    },
+                    scales: {
+                        xAxis: {
+                            type: "logarithmic",
+                        },
+                    },
+                },
+            });
+
+            function updateAxis() {
+                const type = document.getElementById("axis").value;
+                encryptionChart.options.scales.xAxis.type = type;
+                decryptionChart.options.scales.xAxis.type = type;
+                encryptionChart.update();
+                decryptionChart.update();
+            }
+
+            const worker = new Worker("/worker.js", { type: "module" });
+
+            function run(profile) {
+                worker.postMessage({ event: "bench", profile });
+            }
+
+            worker.addEventListener("message", (event) => {
+                if (event.data.event === "init-done") {
+                    console.log("[WEB] init done");
+                }
+                if (event.data.event === "bench-progress") {
+                    progress.min = 0;
+                    progress.max = event.data.max;
+                    progress.min = event.data.value;
+                }
+                if (event.data.event === "bench-done") {
+                    const result = event.data.result;
+                    const sizes = result
+                        .filter((item) => item.type === "pure")
+                        .map((item) => item.size);
+                    encryptionChart.data.labels = sizes;
+                    decryptionChart.data.labels = sizes;
+
+                    const pureEncryptionValues = result
+                        .filter((item) => item.type === "pure")
+                        .map((item) => item.encryption);
+                    encryptionChart.data.datasets[0].data =
+                        pureEncryptionValues;
+                    const pureDecryptionValues = result
+                        .filter((item) => item.type === "pure")
+                        .map((item) => item.decryption);
+                    decryptionChart.data.datasets[0].data =
+                        pureDecryptionValues;
+
+                    const webEncryptionValues = result
+                        .filter((item) => item.type === "web")
+                        .map((item) => item.encryption);
+                    encryptionChart.data.datasets[1].data = webEncryptionValues;
+                    const webDecryptionValues = result
+                        .filter((item) => item.type === "web")
+                        .map((item) => item.decryption);
+                    decryptionChart.data.datasets[1].data = webDecryptionValues;
+
+                    encryptionChart.update();
+                    decryptionChart.update();
+                }
+            });
+            worker.postMessage({ event: "init" });
+        </script>
+    </body>
+</html>

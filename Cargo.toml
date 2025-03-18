@@ -50,3 +50,6 @@ all-features = true
 default-target = "wasm32-unknown-unknown"
 # Add any additional rustdoc flags
 rustdoc-args = ["--cfg", "docsrs"]
+
+[workspace]
+members = ["examples/benchmark"]

@@ -38,6 +38,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "benchmark"
+version = "0.1.0"
+dependencies = [
+ "aes-gcm",
+ "browser-crypto",
+ "console_error_panic_hook",
+ "getrandom",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test",
+ "web-time",
+]
+
+[[package]]
 name = "browser-crypto"
 version = "0.1.0"
 dependencies = [
@@ -449,6 +463,16 @@ name = "web-sys"
 version = "0.3.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33b6dd2ef9186f1f2072e409e99cd22a975331a6b3591b12c764e0e55c60d5d2"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

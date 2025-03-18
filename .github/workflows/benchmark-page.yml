@@ -1,0 +1,39 @@
+name: benchmark page
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install cargo toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: build benchmark resources
+        run: |
+          cd examples/benchmark
+          wasm-pack build --target web
+
+      - name: copy resources to public directory
+        run: |
+          mkdir ./public
+          cp -r examples/benchmark/pkg ./public/pkg
+          cp -r examples/benchmark/{index.html,worker.js} ./public/
+
+      - name: deploy page
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
